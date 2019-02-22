@@ -2,11 +2,6 @@
 
 /* WebGL utilities */
 
-// Keep track of browser focus to sleep when not focused
-var windowFocused = true
-
-
-// Init
 export class sWebGL {
 
   constructor(options) {
