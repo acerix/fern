@@ -31,7 +31,7 @@ export class sWebGL {
     }
 
     // Animation stops when not awake
-    this.awake = false
+    this.awake = true
     window.onfocus = function() {self.awake = true}
     window.onblur = function() {self.awake = false}
 
@@ -75,18 +75,18 @@ export class sWebGL {
       }
     }
 
-    //this.life(this)
+    this.life(this)
 
   }
 
   // Begin or restart rendering
   init() {
-    this.gl.viewportWidth = this.canvas.width
-    this.gl.viewportHeight = this.canvas.height
-    this.gl.clearColor(0.0, 1.0, 0.0, 1.0)  // Clear to black, fully opaque
+    //this.gl.viewportWidth = this.canvas.width
+    //this.gl.viewportHeight = this.canvas.height
+    //this.gl.clearColor(0.0, 1.0, 0.0, 1.0)  // Clear to black, fully opaque
     //this.gl.clearDepth(1.0)                 // Clear everything
     //this.gl.enable(this.gl.DEPTH_TEST)           // Enable depth testing
-    this.gl.depthFunc(this.gl.LEQUAL)            // Near things obscure far things
+    //this.gl.depthFunc(this.gl.LEQUAL)            // Near things obscure far things
     this.initShaders()
   }
 
@@ -129,8 +129,9 @@ export class sWebGL {
 
   // Draw a frame
   drawScene() {
-    this.drawPixel([0.5, 0.5])
-    this.drawPixel([Math.random(), Math.random()])
+    var v = vec2.create()
+    vec2.random(v, Math.random() * 20 + 20)
+    this.drawPixel(v)
     //var e; while (e = this.gl.getError()) console.log('GL error', e)
   }
 
@@ -143,7 +144,7 @@ export class sWebGL {
     }
 
     // Sleep in background
-    if (!self.awake) return window.setTimeout(callback, 99)
+    if (!self.awake) return window.setTimeout(callback, 512)
 
     // Draw
     this.drawScene()

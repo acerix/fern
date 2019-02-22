@@ -17,7 +17,7 @@ export class BarnsleyFern {
       0.07
     ]
 
-    // The coordinate is multiplied on the left by the transformation's matrix (a, b, c, d)
+    // The coordinate is transformed by the matrix (a, b, c, d)
     this.transformation_matrices = [
       mat2.fromValues(+0.00, +0.00, +0.00, +0.16),
       mat2.fromValues(+0.85, +0.04, -0.04, +0.85),
@@ -25,7 +25,7 @@ export class BarnsleyFern {
       mat2.fromValues(-0.15, +0.28, +0.26, +0.24)
     ]
 
-    // The coordinate then adds the transformation's vector (e, f)
+    // The coordinate then adds the vector (e, f)
     this.transformation_vectors = [
       vec2.fromValues(0.00, 0.00),
       vec2.fromValues(0.00, 1.60),
@@ -55,6 +55,7 @@ export class BarnsleyFern {
   }
 
   // Apply the specified number of transformations, running the callback function with the new position at each iteration
+  // Positions are in the range: −2.1818 < x < 2.6556 and 0 < y < 9.9585
   iterate(iterations, callback) {
     for (var i=0; i<iterations; i++) {
       this.transform()
