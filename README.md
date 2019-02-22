@@ -1,5 +1,5 @@
-# webgl-template
-Template for a basic fullscreen WebGL app with inline fragment and vertex shaders.
+# WebGL Barnsley Fern
+Animated, interactive visualization of the barnsley fern fractal.
 
 ## Demo
-https://acerix.github.io/webgl-template/
+https://acerix.github.io/fern/
