@@ -89,6 +89,10 @@ export class sWebGL {
     // Look up where the vertex data needs to go.
     var positionLocation = gl.getAttribLocation(shaderProgram, 'a_position')
 
+    // Transform to cursor
+    var transformLocation = gl.getUniformLocation(shaderProgram, 'u_transform')
+    gl.uniform2f(transformLocation, 0.0, -1.0)
+
     // Set the resolution
     var resolutionLocation = gl.getUniformLocation(shaderProgram, 'u_resolution')
     gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height)

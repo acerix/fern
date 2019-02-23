@@ -1,6 +1,6 @@
 'set strict'
 
-/** sPanel Plugin: Disaplays a user interface panel */
+/** sPanel: Displays fern controls */
 
 export class sPanel {
 
@@ -8,9 +8,6 @@ export class sPanel {
 
     var self = this
 
-    this.html = 'balls'
-
   }
 
 }
-
