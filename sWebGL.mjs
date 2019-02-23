@@ -15,21 +15,6 @@ export class sWebGL {
     // Plugins
     this.plugins = options.hasOwnProperty('plugins') ? options.plugins : {}
 
-    // Default parameters
-    this.params = options.hasOwnProperty('params') ? options.params : {
-
-      // Centre point
-      x: 0,
-      y: 0,
-
-      // Scale of x, y
-      sx: 1,
-      sy: 1,
-
-      // Rotation (0..1)
-      r: 0
-    }
-
     // Animation stops when not awake
     this.awake = true
     window.onfocus = function() {self.awake = true}

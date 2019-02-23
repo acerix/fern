@@ -5,7 +5,7 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>
 <title>Barnsley Fern Visualizer</title>
 </head>
-<body style='overflow:hidden; margin:0; background-color:#888;'>
+<body style='overflow:hidden; margin:0; background-color:#000;'>
 
 <script id='shader-fs' type='text/x-fragment_shader'>
 
@@ -31,15 +31,13 @@ void main() {
   vec2 clip_space = a_position / u_resolution;
 
   // scale
-  clip_space *= 182.0;
-
-  // 9.9585
+  clip_space *= u_resolution.y * 0.185;
 
   // translate to bottom centre
   clip_space.y -= 1.0;
 
   gl_Position = vec4(clip_space, 0.0, 1.0);
-  gl_PointSize = 1.0;
+  //gl_PointSize = 1.0;
 }
 
 </script>
