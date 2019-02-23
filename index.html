@@ -4,8 +4,15 @@
 <meta charset='utf-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>
 <title>Barnsley Fern Visualizer</title>
+<style>
+body {
+  overflow: hidden;
+  margin: 0;
+  background-color: #000;
+}
+</style>
 </head>
-<body style='overflow:hidden; margin:0; background-color:#000;'>
+<body>
 
 <script id='shader-fs' type='text/x-fragment_shader'>
 
@@ -37,7 +44,9 @@ void main() {
   clip_space.y -= 1.0;
 
   gl_Position = vec4(clip_space, 0.0, 1.0);
+
   //gl_PointSize = 1.0;
+
 }
 
 </script>
@@ -48,26 +57,127 @@ void main() {
 'set strict'
 
 import {sWebGL} from './sWebGL.mjs'
+import {sParams} from './sParams.mjs'
+import {sPanel} from './sPanel.mjs'
+import {sMouse} from './sMouse.mjs'
 import {BarnsleyFern} from './BarnsleyFern.mjs'
 
 window.onload = function() {
 
-  var swgl = new sWebGL()
+  // Keep track of where the mouse was while dragging
+  var mouse_left_drag_last_position = [0, 0]
+
+  // Keep track of when each button is pressed to determine which button was pressed first
+  var mouse_left_last_click = 0
+  var mouse_right_last_click = 0
+
+  var param_handler = new sParams()
+
+  param_handler.params = {
+
+      // Centre point
+      x: 0,
+      y: 0,
+
+      // Fern iterations
+      iterations: 1<<13,
+
+  }
+
+  param_handler.update()
+
+  var swgl = new sWebGL({
+    plugins: {
+      'panel': new sPanel(),
+      'mouse': new sMouse({
+        onDown: {
+
+          // left-click
+          0: function() {
+            mouse_left_last_click = + new Date()
+
+            // Record position for dragging
+            mouse_left_drag_last_position = swgl.plugins.mouse.p.slice(0)
+          },
+
+          // middle-click
+          1: function() {
+            // Reset view
+            param_handler.params.x = param_handler.params.y = 0
+            param_handler.params.sx = param_handler.params.sy = 1
+            param_handler.params.r = 0
+          },
+
+          // right-click
+          2: function() {
+            mouse_right_last_click = + new Date()
+          },
+
+        },
+        whileDown: {
+
+          // left-click
+          0: function() {
+            // if right-click is not also pressed
+            if (swgl.plugins.mouse.b[2] === 0) {
+              // Move by dragging
+              var mouse_delta = [
+                swgl.xToScreenBasis(mouse_left_drag_last_position[0]) - swgl.xToScreenBasis(swgl.plugins.mouse.p[0]),
+                swgl.yToScreenBasis(mouse_left_drag_last_position[1]) - swgl.yToScreenBasis(swgl.plugins.mouse.p[1])
+              ]
+              mouse_left_drag_last_position = swgl.plugins.mouse.p.slice(0)
+              swgl.move(
+                //swgl.xFromScreenBasis(mouse_delta[0]),
+                //swgl.yFromScreenBasis(mouse_delta[1])
+                -mouse_delta[0],
+                mouse_delta[1]
+              )
+            }
+            else {
+              // Rotate
+              if (mouse_left_last_click > mouse_right_last_click) {
+                swgl.rotate(0.001)
+              }
+              else {
+                swgl.rotate(-0.001)
+              }
+            }
+          },
+
+          // right-click
+          2: function() {
+            // ignore when left-click is also pressed
+            if (swgl.plugins.mouse.b[0] !== 0) {
+              return
+            }
+            // move towards drag position
+            swgl.move(
+              (swgl.canvas.centre[0] - swgl.plugins.mouse.p[0]) / 4096,
+              -(swgl.canvas.centre[1] - swgl.plugins.mouse.p[1]) / 4096
+            )
+          },
+
+        },
+        onWheel: function(i) {
+          swgl.incrementZoom(-i, swgl.plugins.mouse.p)
+        },
+      }),
+    }
+  })
+
+  var fern = new BarnsleyFern()
 
   swgl.drawScene = function() {
 
     swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
 
-    var fern = new BarnsleyFern()
-
     // Iterate through transformations, drawing each position
     fern.iterate(
-      5000,
+      param_handler.params.iterations,
       function (position) {
         swgl.drawPixel(position)
       }
     )
-
   }
 
 }

@@ -23,13 +23,6 @@ export class sWebGL {
     // Function called for each frame
     this.drawScene = function() {}
 
-    // Override parameters from params plugin
-    if (typeof this.plugins.params === 'object') {
-      for (var i in this.plugins.params.params) if (i in this.params) {
-        this.params[i] = this.plugins.params.params[i]
-      }
-    }
-
     // Create canvas DOM element
     this.canvas = document.createElement('canvas')
     document.body.appendChild(this.canvas)
@@ -152,6 +145,13 @@ export class sWebGL {
     var gl = this.gl
     gl.bufferData(gl.ARRAY_BUFFER, position, gl.STATIC_DRAW)
     gl.drawArrays(gl.POINTS, 0, 1)
+  }
+
+  // Draw pixels on the canvas
+  drawPixels(position_buffer) {
+    var gl = this.gl
+    gl.bufferData(gl.ARRAY_BUFFER, position_buffer, gl.STATIC_DRAW)
+    gl.drawArrays(gl.POINTS, 0, position_buffer.length)
   }
 
 }
