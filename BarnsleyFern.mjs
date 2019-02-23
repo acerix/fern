@@ -25,9 +25,9 @@ export class BarnsleyFern {
     // The coordinate is transformed by the matrix (a, b, c, d)
     this.transformation_matrices = [
       mat2.fromValues( 0.00,  0.00,  0.00,  0.16),
-      mat2.fromValues(-0.85,  0.04, -0.04,  0.85),
-      mat2.fromValues( 0.20, -0.26,  0.23,  0.22),
-      mat2.fromValues(-0.15,  0.28,  0.26,  0.24)
+      mat2.fromValues( 0.85, -0.04,  0.04,  0.85),
+      mat2.fromValues( 0.20,  0.23, -0.26,  0.22),
+      mat2.fromValues(-0.15,  0.26,  0.28,  0.24)
     ]
 
     // The coordinate then adds the vector (e, f)
@@ -61,6 +61,11 @@ export class BarnsleyFern {
       this.transform()
       callback(this.position)
     }
+  }
+
+  // Reset position to origin
+  reset() {
+    this.position[0] = this.position[1] = 0
   }
 
 }

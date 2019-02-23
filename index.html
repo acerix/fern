@@ -10,6 +10,12 @@ body {
   margin: 0;
   background-color: #000;
 }
+input[type=number] {
+  width: 80px;
+}
+input[type=range] {
+  width: 420px;
+}
 </style>
 </head>
 <body>
@@ -61,7 +67,7 @@ void main() {
 import {sWebGL} from './sWebGL.mjs'
 import {sParams} from './sParams.mjs'
 import {sPanel} from './sPanel.mjs'
-import {sMouse} from './sMouse.mjs'
+//import {sMouse} from './sMouse.mjs'
 import {BarnsleyFern} from './BarnsleyFern.mjs'
 
 window.onload = function() {
@@ -73,26 +79,29 @@ window.onload = function() {
   var mouse_left_last_click = 0
   var mouse_right_last_click = 0
 
+  // Get params from URL hash and update URL when they change
   var param_handler = new sParams()
 
+  // Default params
   param_handler.params = {
 
-      // Centre point
-      x: 0,
-      y: 0,
+      // Scroll position
+      x:  0.0,
+      y: -1.0,
 
       // Fern iterations
-      iterations: 1<<13,
+      iterations: 1<<15,
 
   }
 
+  // Update params in URL hash
   param_handler.update()
 
+  // Init Web GL
   var swgl = new sWebGL({
+    /*
     plugins: {
-      'panel': new sPanel(),
       'mouse': new sMouse({
-        /*
         onDown: {
 
           // left-click
@@ -164,16 +173,20 @@ window.onload = function() {
         onWheel: function(i) {
           swgl.incrementZoom(-i, swgl.plugins.mouse.p)
         },
-        */
+
       }),
-    }
+    }        */
   })
 
+  // Draw the fern
   var fern = new BarnsleyFern()
 
   swgl.drawScene = function() {
 
     swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
+
+    // Reset initial position
+    fern.reset()
 
     // Iterate through transformations, drawing each position
     fern.iterate(
@@ -183,6 +196,13 @@ window.onload = function() {
       }
     )
   }
+
+  // Draw the fern control panel
+  var panel = new sPanel()
+
+  panel.drawSliders(fern.transformation_probabilities, 'p', {min: 0, max: 1})
+  panel.drawSliders(fern.transformation_matrices, 'm')
+  panel.drawSliders(fern.transformation_vectors, 'v')
 
 }
 
