@@ -27,14 +27,16 @@ uniform vec2 u_resolution;
 
 void main() {
 
-  // from pixels to 0.0 ... 1.0
+  // convert from pixels to 0...1
   vec2 clip_space = a_position / u_resolution;
 
   // scale
-  clip_space *= 10.0;
+  clip_space *= 182.0;
 
-  // translate
-  clip_space += vec2(0, 0);
+  // 9.9585
+
+  // translate to bottom centre
+  clip_space.y -= 1.0;
 
   gl_Position = vec4(clip_space, 0.0, 1.0);
   gl_PointSize = 1.0;
@@ -51,27 +53,25 @@ import {sWebGL} from './sWebGL.mjs'
 import {BarnsleyFern} from './BarnsleyFern.mjs'
 
 window.onload = function() {
+
   var swgl = new sWebGL()
 
-  swgl.drawPixel(vec2.fromValues(0, 0))
-  swgl.drawPixel(vec2.fromValues(1, 1))
-  swgl.drawPixel(vec2.fromValues(2, 2))
+  swgl.drawScene = function() {
 
-  swgl.drawPixel(vec2.fromValues(-2.2, 0))
-  swgl.drawPixel(vec2.fromValues(+2.7, 0))
-  swgl.drawPixel(vec2.fromValues(-2.2, 10))
-  swgl.drawPixel(vec2.fromValues(+2.7, 10))
+    swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
 
-  var fern = new BarnsleyFern()
+    var fern = new BarnsleyFern()
 
-  // Iterate through transformations, drawing each position
-  fern.iterate(
-    10000,
-    function (position) {
-      //console.log(position)
-      swgl.drawPixel(position)
-    }
-  )
+    // Iterate through transformations, drawing each position
+    fern.iterate(
+      5000,
+      function (position) {
+        swgl.drawPixel(position)
+      }
+    )
+
+  }
+
 }
 
 </script>

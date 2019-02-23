@@ -27,13 +27,16 @@ export class sWebGL {
       sy: 1,
 
       // Rotation (0..1)
-      r: 0 // 7/8 is good for fermat curve
+      r: 0
     }
 
     // Animation stops when not awake
     this.awake = true
     window.onfocus = function() {self.awake = true}
     window.onblur = function() {self.awake = false}
+
+    // Function called for each frame
+    this.drawScene = function() {}
 
     // Override parameters from params plugin
     if (typeof this.plugins.params === 'object') {
@@ -56,8 +59,6 @@ export class sWebGL {
     window.onresize = function() {
       self.canvas.width = window.innerWidth
       self.canvas.height = window.innerHeight
-      //canvas.style.width = window.innerWidth + 'px'
-      //canvas.style.height = window.innerHeight + 'px'
       self.canvas.centre = [
         Math.floor(self.canvas.width/2),
         Math.floor(self.canvas.height/2)
@@ -81,12 +82,12 @@ export class sWebGL {
 
   // Begin or restart rendering
   init() {
-    //this.gl.viewportWidth = this.canvas.width
-    //this.gl.viewportHeight = this.canvas.height
-    //this.gl.clearColor(0.0, 1.0, 0.0, 1.0)  // Clear to black, fully opaque
-    //this.gl.clearDepth(1.0)                 // Clear everything
-    //this.gl.enable(this.gl.DEPTH_TEST)           // Enable depth testing
-    //this.gl.depthFunc(this.gl.LEQUAL)            // Near things obscure far things
+    var gl = this.gl
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height)
+    gl.clearColor(0.0, 0.0, 0.0, 1.0)  // Clear to black, fully opaque
+    //gl.clearDepth(1.0)                 // Clear everything
+    //gl.enable(this.gl.DEPTH_TEST)      // Enable depth testing
+    //gl.depthFunc(this.gl.LEQUAL)       // Near things obscure far things
     this.initShaders()
   }
 
@@ -127,14 +128,6 @@ export class sWebGL {
 
   }
 
-  // Draw a frame
-  drawScene() {
-    var v = vec2.create()
-    vec2.random(v, Math.random() * 20 + 20)
-    this.drawPixel(v)
-    //var e; while (e = this.gl.getError()) console.log('GL error', e)
-  }
-
   // Looping callback
   life(self) {
 
@@ -158,7 +151,7 @@ export class sWebGL {
     var gl = this.gl
     var scriptElement = document.getElementById(id)
     if (scriptElement === null) {
-      console.error('Shader script element "' + id + '" not found')
+      throw new Error('Shader script element "' + id + '" not found')
     }
     var shader = gl.createShader(gl[scriptElement.type.replace('text/x-','').toUpperCase()])
     gl.shaderSource(shader, scriptElement.textContent)
