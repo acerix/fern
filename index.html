@@ -174,12 +174,15 @@ window.onload = function() {
     onchange: {
       'x': function(v) {
         swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
       },
       'y': function(v) {
         swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
       },
       'z': function(v) {
         swgl.gl.uniform1f(swgl.scale_location, param_handler.params.z)
+        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
       },
     }
   })
@@ -224,7 +227,7 @@ window.onload = function() {
       }
     }
 
-    swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
+    //swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
 
     // Reset initial position
     fern.reset()
@@ -251,6 +254,7 @@ window.onload = function() {
         var indexes = name.split('_')
         param_handler.params[name] = fern.transformation_probabilities[indexes[1]].toFixed(3)
         param_handler.update()
+        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
       },
     }
   )
@@ -262,6 +266,7 @@ window.onload = function() {
         var indexes = name.split('_')
         param_handler.params[name] = fern.transformation_matrices[indexes[1]][indexes[2]].toFixed(3)
         param_handler.update()
+        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
       },
     }
   )
@@ -273,6 +278,7 @@ window.onload = function() {
         var indexes = name.split('_')
         param_handler.params[name] = fern.transformation_vectors[indexes[1]][indexes[2]].toFixed(3)
         param_handler.update()
+        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
       },
     }
   )
