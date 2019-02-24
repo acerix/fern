@@ -10,18 +10,39 @@ export class sPanel {
 
     // <div> container for the panel
     this.div = document.createElement('div')
-    this.div.style.position = 'absolute'
-    this.div.style.top = this.div.style.right = '10px'
-    this.div.style.color = '#0c0'
+    this.div.classList.add('panel')
 
     // <table> for the sliders
     this.slider_table = document.createElement('table')
+    this.slider_table.style.display = 'none'
     var tbody = document.createElement('tbody')
     this.slider_table.appendChild(tbody)
     this.div.appendChild(this.slider_table)
 
+    // buttons
+    var panel_buttons = document.createElement('p')
+    panel_buttons.classList.add('buttons')
+
+    var reset_button = document.createElement('a')
+    reset_button.textContent = 'Reset'
+    reset_button.href = ''
+    panel_buttons.appendChild(reset_button)
+
+    var toggle_panel_button = document.createElement('a')
+    toggle_panel_button.textContent = 'Control Panel'
+    toggle_panel_button.onclick = function() {
+      self.toggle()
+    }
+    panel_buttons.appendChild(toggle_panel_button)
+
+    this.div.appendChild(panel_buttons)
+
     document.body.appendChild(this.div)
 
+  }
+
+  toggle() {
+    this.slider_table.style.display = this.slider_table.style.display === 'none' ? 'block' : 'none'
   }
 
   drawSliders(params, name, options) {
@@ -75,7 +96,9 @@ export class sPanel {
 
     // Input text
     var text_input_td = document.createElement('td')
+    text_input_td.classList.add('label')
     var text_input = document.createElement('input')
+    text_input.id = name + '_number_input'
     text_input.type = 'number'
     text_input.step = 0.001
     text_input.value = params[i].toFixed(3)
@@ -85,6 +108,7 @@ export class sPanel {
     // Input slider
     var range_input_td = document.createElement('td')
     var range_input = document.createElement('input')
+    range_input.id = name + '_range_input'
     range_input.type = 'range'
     range_input.min = options.min
     range_input.max = options.max

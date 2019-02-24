@@ -4,23 +4,9 @@
 <meta charset='utf-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>
 <title>Barnsley Fern Visualizer</title>
-<style>
-body {
-  overflow: hidden;
-  margin: 0;
-  background-color: #000;
-}
-input[type=number] {
-  width: 80px;
-}
-input[type=range] {
-  width: 420px;
-}
-</style>
+<link href="style.css" rel="stylesheet">
 </head>
 <body>
-
-<a href="" style="position: fixed; bottom: 10px; right: 10px; color: #0c0; ">Reset</a>
 
 <script id='shader-fs' type='text/x-fragment_shader'>
 
@@ -87,8 +73,16 @@ window.onload = function() {
   // Increment the zoom level (scale)
   var incrementZoom = function(increment, towards) {
     param_handler.params.z = ((1 - increment / 16) * param_handler.params.z).toFixed(5)
-    param_handler.update()
     swgl.gl.uniform1f(swgl.scale_location, param_handler.params.z)
+
+    // Zoom towards the target
+    /*
+    param_handler.params.x = ((+param_handler.params.x) - (towards[0] - swgl.canvas.centre[0]) / 128 ).toFixed(5)
+    param_handler.params.y = ((+param_handler.params.y) - (towards[1] - swgl.canvas.centre[1]) / 128 ).toFixed(5)
+    swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+    */
+
+    param_handler.update()
   }
 
 
@@ -119,30 +113,21 @@ window.onload = function() {
             // if right-click is not also pressed
             if (swgl.plugins.mouse.b[2] === 0) {
               // Move by dragging
+              var z = param_handler.params.z * 7
               var mouse_delta = [
-                mouse_left_drag_last_position[0] - swgl.plugins.mouse.p[0],
-                mouse_left_drag_last_position[1] - swgl.plugins.mouse.p[1]
+                swgl.xToScreenBasis(mouse_left_drag_last_position[0], z) - swgl.xToScreenBasis(swgl.plugins.mouse.p[0], z),
+                swgl.yToScreenBasis(mouse_left_drag_last_position[1], z) - swgl.yToScreenBasis(swgl.plugins.mouse.p[1], z)
               ]
               mouse_left_drag_last_position = swgl.plugins.mouse.p.slice(0)
-              //swgl.move(
-              console.log(
-                //swgl.xFromScreenBasis(mouse_delta[0]),
-                //swgl.yFromScreenBasis(mouse_delta[1])
-                -mouse_delta[0],
-                mouse_delta[1]
-              )
-            }
-            /*
-            else {
-              // Rotate
-              if (mouse_left_last_click > mouse_right_last_click) {
-                swgl.rotate(0.001)
+              if (mouse_delta[0] || mouse_delta[1]) {
+                param_handler.params.x = (-mouse_delta[0] + +param_handler.params.x).toFixed(5)
+                param_handler.params.y = (mouse_delta[1] + +param_handler.params.y).toFixed(5)
+                swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+                swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
+                param_handler.update()
               }
-              else {
-                swgl.rotate(-0.001)
-              }
+
             }
-            */
           },
 
           /*
@@ -169,23 +154,48 @@ window.onload = function() {
     }
   })
 
-  // Get params from URL hash and update URL when they change
-  var param_handler = new sParams({
-    onchange: {
-      'x': function(v) {
-        swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
-        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
-      },
-      'y': function(v) {
-        swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
-        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
-      },
-      'z': function(v) {
-        swgl.gl.uniform1f(swgl.scale_location, param_handler.params.z)
-        swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
-      },
+  // Callback functions when params are changed
+  var param_onchange_callbacks = {
+    'x': function(v) {
+      swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+      swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
+    },
+    'y': function(v) {
+      swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+      swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
+    },
+    'z': function(v) {
+      swgl.gl.uniform1f(swgl.scale_location, param_handler.params.z)
+      swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
+    },
+  }
+
+
+  // Create the fern instance
+  var fern = new BarnsleyFern()
+
+  // Add onchange callbacks for fern params
+  /*
+  for (var i in fern.transformation_probabilities) {
+    param_onchange_callbacks['p_' + i] = function(param_value) {
+      fern.transformation_probabilities[i] = +param_value
     }
-  })
+  }
+  for (var i in fern.transformation_matrices) for (var j in fern.transformation_matrices[i]) {
+    param_onchange_callbacks['m_' + i + '_' + j] = function(param_value) {
+      console.log('m_' + i + '_' + j, param_value)
+      fern.transformation_matrices[i][j] = +param_value
+    }
+  }
+  for (var i in fern.transformation_vectors) for (var j in fern.transformation_vectors[i])  {
+    param_onchange_callbacks['v_' + i + '_' + j] = function(param_value) {
+      fern.transformation_vectors[i][j] = +param_value
+    }
+  }
+  */
+
+  // Get params from URL hash and update URL when they change
+  var param_handler = new sParams({onchange: param_onchange_callbacks})
 
   // Default params
   param_handler.params = {
@@ -195,10 +205,10 @@ window.onload = function() {
       y: -1.0,
 
       // Zoom
-      z: 0.185,
+      z: 0.198,
 
       // Fern iterations
-      iterations: 8000,
+      iterations: 1<<12,
 
   }
 
@@ -212,10 +222,38 @@ window.onload = function() {
   swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
   swgl.gl.uniform1f(swgl.scale_location, param_handler.params.z)
 
-  // Draw the fern
-  var fern = new BarnsleyFern()
+  // Set fern params from URL hash
+  for (var param_name in param_handler.params) {
+    var indexes = param_name.split('_')
+    switch (indexes[0]) {
+
+      case 'p':
+        fern.transformation_probabilities[indexes[1]] = param_handler.params[param_name]
+        break;
+
+      case 'm':
+        fern.transformation_matrices[indexes[1]][indexes[2]] = param_handler.params[param_name]
+        break;
+
+      case 'v':
+        fern.transformation_vectors[indexes[1]][indexes[2]] = param_handler.params[param_name]
+        break;
+
+    }
+  }
+
+
+  // Point in time counter (eg. frame number)
+  var pot = 0
+
+  var color_offsets = vec3.create()
+  vec3.random(color_offsets)
+  var color_frequencies = vec3.create()
+  vec3.random(color_frequencies, 0.05)
 
   swgl.drawScene = function() {
+
+    pot++
 
     if (typeof swgl.plugins === 'object') {
       for (var i in swgl.plugins) if (swgl.plugins[i].hasOwnProperty('whileDown')) {
@@ -226,6 +264,18 @@ window.onload = function() {
         }
       }
     }
+
+    // Randomize colour
+    //swgl.gl.uniform4f(this.color_location, Math.random(), Math.random(), Math.random(), 1)
+
+    // Siney colour
+    swgl.gl.uniform4f(
+      this.color_location,
+      1 + Math.sin(color_offsets[0] + pot * color_frequencies[0]),
+      1 + Math.sin(color_offsets[1] + pot * color_frequencies[1]),
+      1 + Math.sin(color_offsets[2] + pot * color_frequencies[2]),
+      1
+    )
 
     //swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
 
