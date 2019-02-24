@@ -16,15 +16,12 @@ export class sParams {
     this.params = {}
 
     // Callbacks for each param when changed
-    this.onChange = options.hasOwnProperty('onChange') ? options.onChange : {}
+    this.onchange = options.hasOwnProperty('onchange') ? options.onchange : {}
 
     // Parse when URL hash changes
     window.onhashchange = function() {
       self.parse(true)
     }
-
-    // Parse on init
-    //this.parse(false)
 
   }
 
@@ -51,8 +48,8 @@ export class sParams {
       // Only allow numbers, convert to int if whole otherwise float
       this.params[i] = new_params[i] % 1 === 0 ? parseInt(new_params[i], 10) : parseFloat(new_params[i])
 
-      if (runCallbacks && i in this.onChange) {
-        this.onChange[i](this.params[i])
+      if (runCallbacks && i in this.onchange) {
+        this.onchange[i](this.params[i])
       }
     }
   }

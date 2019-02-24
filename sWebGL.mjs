@@ -33,6 +33,10 @@ export class sWebGL {
       preserveDrawingBuffer: true
     })
 
+    // Uniforms
+    this.scale_location = null
+    this.tranform_location = null
+
     // Handle viewport resize
     window.onresize = function() {
       self.canvas.width = window.innerWidth
@@ -89,9 +93,11 @@ export class sWebGL {
     // Look up where the vertex data needs to go.
     var positionLocation = gl.getAttribLocation(shaderProgram, 'a_position')
 
+    // Scale
+    this.scale_location = gl.getUniformLocation(shaderProgram, 'u_scale')
+
     // Transform to cursor
-    var transformLocation = gl.getUniformLocation(shaderProgram, 'u_transform')
-    gl.uniform2f(transformLocation, 0.0, -1.0)
+    this.transform_location = gl.getUniformLocation(shaderProgram, 'u_transform')
 
     // Set the resolution
     var resolutionLocation = gl.getUniformLocation(shaderProgram, 'u_resolution')

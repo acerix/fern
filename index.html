@@ -20,6 +20,8 @@ input[type=range] {
 </head>
 <body>
 
+<a href="" style="position: fixed; bottom: 10px; right: 10px; color: #0c0; ">Reset</a>
+
 <script id='shader-fs' type='text/x-fragment_shader'>
 
 precision lowp float;
@@ -36,6 +38,8 @@ void main() {
 
 attribute vec2 a_position;
 
+uniform float u_scale;
+
 uniform vec2 u_transform;
 
 uniform vec2 u_resolution;
@@ -46,7 +50,7 @@ void main() {
   vec2 clip_space = a_position / u_resolution;
 
   // scale
-  clip_space *= u_resolution.y * 0.185;
+  clip_space *= u_resolution.y * u_scale;
 
   // translate
   clip_space += u_transform;
@@ -67,7 +71,7 @@ void main() {
 import {sWebGL} from './sWebGL.mjs'
 import {sParams} from './sParams.mjs'
 import {sPanel} from './sPanel.mjs'
-//import {sMouse} from './sMouse.mjs'
+import {sMouse} from './sMouse.mjs'
 import {BarnsleyFern} from './BarnsleyFern.mjs'
 
 window.onload = function() {
@@ -79,50 +83,32 @@ window.onload = function() {
   var mouse_left_last_click = 0
   var mouse_right_last_click = 0
 
-  // Get params from URL hash and update URL when they change
-  var param_handler = new sParams()
 
-  // Default params
-  param_handler.params = {
-
-      // Scroll position
-      x:  0.0,
-      y: -1.0,
-
-      // Fern iterations
-      iterations: 1<<15,
-
+  // Increment the zoom level (scale)
+  var incrementZoom = function(increment, towards) {
+    param_handler.params.z = ((1 - increment / 16) * param_handler.params.z).toFixed(5)
+    param_handler.update()
+    swgl.gl.uniform1f(swgl.scale_location, param_handler.params.z)
   }
 
-  // Update params in URL hash
-  param_handler.update()
 
   // Init Web GL
   var swgl = new sWebGL({
-    /*
     plugins: {
       'mouse': new sMouse({
         onDown: {
 
           // left-click
           0: function() {
-            mouse_left_last_click = + new Date()
+            mouse_left_last_click = +new Date()
 
             // Record position for dragging
             mouse_left_drag_last_position = swgl.plugins.mouse.p.slice(0)
           },
 
-          // middle-click
-          1: function() {
-            // Reset view
-            param_handler.params.x = param_handler.params.y = 0
-            param_handler.params.sx = param_handler.params.sy = 1
-            param_handler.params.r = 0
-          },
-
           // right-click
           2: function() {
-            mouse_right_last_click = + new Date()
+            mouse_right_last_click = +new Date()
           },
 
         },
@@ -134,17 +120,19 @@ window.onload = function() {
             if (swgl.plugins.mouse.b[2] === 0) {
               // Move by dragging
               var mouse_delta = [
-                swgl.xToScreenBasis(mouse_left_drag_last_position[0]) - swgl.xToScreenBasis(swgl.plugins.mouse.p[0]),
-                swgl.yToScreenBasis(mouse_left_drag_last_position[1]) - swgl.yToScreenBasis(swgl.plugins.mouse.p[1])
+                mouse_left_drag_last_position[0] - swgl.plugins.mouse.p[0],
+                mouse_left_drag_last_position[1] - swgl.plugins.mouse.p[1]
               ]
               mouse_left_drag_last_position = swgl.plugins.mouse.p.slice(0)
-              swgl.move(
+              //swgl.move(
+              console.log(
                 //swgl.xFromScreenBasis(mouse_delta[0]),
                 //swgl.yFromScreenBasis(mouse_delta[1])
                 -mouse_delta[0],
                 mouse_delta[1]
               )
             }
+            /*
             else {
               // Rotate
               if (mouse_left_last_click > mouse_right_last_click) {
@@ -154,8 +142,10 @@ window.onload = function() {
                 swgl.rotate(-0.001)
               }
             }
+            */
           },
 
+          /*
           // right-click
           2: function() {
             // ignore when left-click is also pressed
@@ -168,20 +158,71 @@ window.onload = function() {
               -(swgl.canvas.centre[1] - swgl.plugins.mouse.p[1]) / 4096
             )
           },
+          */
 
         },
         onWheel: function(i) {
-          swgl.incrementZoom(-i, swgl.plugins.mouse.p)
+          incrementZoom(-i, swgl.plugins.mouse.p)
         },
 
       }),
-    }        */
+    }
   })
+
+  // Get params from URL hash and update URL when they change
+  var param_handler = new sParams({
+    onchange: {
+      'x': function(v) {
+        swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+      },
+      'y': function(v) {
+        swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+      },
+      'z': function(v) {
+        swgl.gl.uniform1f(swgl.scale_location, param_handler.params.z)
+      },
+    }
+  })
+
+  // Default params
+  param_handler.params = {
+
+      // Scroll position
+      x:  0.0,
+      y: -1.0,
+
+      // Zoom
+      z: 0.185,
+
+      // Fern iterations
+      iterations: 8000,
+
+  }
+
+  // Parse supplies params
+  param_handler.parse(false)
+
+  // Update params in URL hash
+  param_handler.update()
+
+  // Set sWebGL params
+  swgl.gl.uniform2f(swgl.transform_location, param_handler.params.x, param_handler.params.y)
+  swgl.gl.uniform1f(swgl.scale_location, param_handler.params.z)
 
   // Draw the fern
   var fern = new BarnsleyFern()
 
   swgl.drawScene = function() {
+
+    if (typeof swgl.plugins === 'object') {
+      for (var i in swgl.plugins) if (swgl.plugins[i].hasOwnProperty('whileDown')) {
+        for (var j in swgl.plugins[i].whileDown) {
+          if (swgl.plugins[i].b[j]) {
+            swgl.plugins[i].whileDown[j]()
+          }
+        }
+      }
+    }
 
     swgl.gl.clear(swgl.gl.COLOR_BUFFER_BIT)
 
@@ -200,9 +241,41 @@ window.onload = function() {
   // Draw the fern control panel
   var panel = new sPanel()
 
-  panel.drawSliders(fern.transformation_probabilities, 'p', {min: 0, max: 1})
-  panel.drawSliders(fern.transformation_matrices, 'm')
-  panel.drawSliders(fern.transformation_vectors, 'v')
+  panel.drawSliders(
+    fern.transformation_probabilities,
+    'p',
+    {
+      min: 0,
+      max: 1,
+      onchange: function(name) {
+        var indexes = name.split('_')
+        param_handler.params[name] = fern.transformation_probabilities[indexes[1]].toFixed(3)
+        param_handler.update()
+      },
+    }
+  )
+  panel.drawSliders(
+    fern.transformation_matrices,
+    'm',
+    {
+      onchange: function(name) {
+        var indexes = name.split('_')
+        param_handler.params[name] = fern.transformation_matrices[indexes[1]][indexes[2]].toFixed(3)
+        param_handler.update()
+      },
+    }
+  )
+  panel.drawSliders(
+    fern.transformation_vectors,
+    'v',
+    {
+      onchange: function(name) {
+        var indexes = name.split('_')
+        param_handler.params[name] = fern.transformation_vectors[indexes[1]][indexes[2]].toFixed(3)
+        param_handler.update()
+      },
+    }
+  )
 
 }
 

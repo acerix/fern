@@ -33,11 +33,11 @@ export class sPanel {
     for (var i in params) switch (typeof params[i]) {
 
       case 'number':
-        this._drawSlider(params, i, name, options)
+        this._drawSlider(params, i, name + '_' + i, options)
         break;
 
       case 'object':
-        this.drawSliders(params[i], name + '[' + i + ']', options)
+        this.drawSliders(params[i], name + '_' + i, options)
         break;
 
       default:
@@ -69,7 +69,7 @@ export class sPanel {
 
     // Label
     var label_td = document.createElement('td')
-    var label = document.createTextNode(name + '[' + i + ']')
+    var label = document.createTextNode(name)
     label_td.appendChild(label)
     tr.appendChild(label_td)
 
@@ -98,14 +98,14 @@ export class sPanel {
       params[i] = +event.target.value
       range_input.value = params[i]
       if (typeof options.onchange === 'function') {
-        options.onchange(i)
+        options.onchange(name)
       }
     }
     range_input.oninput = range_input.onchange = function(event) {
       params[i] = +event.target.value
       text_input.value = params[i].toFixed(3)
       if (typeof options.onchange === 'function') {
-        options.onchange(i)
+        options.onchange(name)
       }
     }
 
